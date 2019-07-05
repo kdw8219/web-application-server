@@ -13,13 +13,18 @@ import java.nio.file.Files;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import db.DataBase;
+import model.User;
+
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 
     private Socket connection;
+    private DataBase UserDB;
 
-    public RequestHandler(Socket connectionSocket) {
+    public RequestHandler(Socket connectionSocket, DataBase DB) {
         this.connection = connectionSocket;
+        this.UserDB = DB;
     }
     
     private String[] SplitUserData(String data) {
@@ -27,11 +32,12 @@ public class RequestHandler extends Thread {
     	String UserDataUnSplitted[] = new String[4];
     	String Users[] = new String[4];
     	
-    	UserDataUnSplitted = data.split("& ");
+    	UserDataUnSplitted = data.split("&");
     	
     	Users[0] = UserDataUnSplitted[0].split("=")[1];
     	Users[1] = UserDataUnSplitted[1].split("=")[1];
     	Users[2] = UserDataUnSplitted[2].split("=")[1];
+    	Users[3] = UserDataUnSplitted[3].split("=")[1];
     	
     	return Users;
     	
@@ -49,9 +55,11 @@ public class RequestHandler extends Thread {
     		body = Files.readAllBytes(new File("./webapp" + GetData).toPath());
     	else if(GetData.contains("/user/create?"))
     	{
-    		String splits[] = new String[2];
-    		splits = GetData.split("?");
+    		String splits[] = GetData.split("\\?");
     		String UserData[] = SplitUserData(splits[1]);
+    		
+    		User usr = new User(UserData[0], UserData[1], UserData[2], UserData[3]);
+    		UserDB.addUser(usr);
     		
     		//model.User usr = new model.User();
     		
